@@ -56,35 +56,25 @@ def backupHost(file,user,password):
         
         try:
             tn = telnetlib.Telnet(host,23,30)
-        except Exception as e:
+        except Exception:
             print ('1') #valor enviado ao index.php, que por sua vez printa erro ao usuário.
-            quit()
+            sys.exit()
 
         #faz login no host
         tn.read_until(b"User name:")
         tn.write(user.encode('utf-8') + b"\n") 
-        time.sleep(.2)
+        
         tn.read_until(b"password:") 
         tn.write(password.encode('utf-8') + b"\n") 
-        time.sleep(3)
 
         tn.write(b"enable\n")
-        time.sleep(.3)
         tn.write(b"config\n")
-        time.sleep(.3)
         tn.write(b"display current-configuration | no-more\n\n")
-        time.sleep(10) #tempo grande pois olts com muitas onus demoram bastante pra retornar todas as informacoes
         tn.write(b"\nfimdocomando\n")
         return_lineid = tn.read_until('fimdocomando'.encode('utf-8'),3).decode('utf-8')
         data_return = return_lineid.splitlines()
 
         #Fecha a conexao com a host
-        tn.write("quit\n".encode('utf-8'))
-        time.sleep(.3)
-        tn.write("quit\n".encode('utf-8'))
-        time.sleep(.3)
-        tn.write('y'.encode('utf-8') + "\n".encode('utf-8'))
-        time.sleep(.3)
         tn.close()
 
         date = datetime.datetime.today()
@@ -95,8 +85,8 @@ def backupHost(file,user,password):
         #grava linha por linha o retorno do comando "show running-config | nomore", e a cada linha da um enter
         text_file = open(file_name, "wt")
         for linha in data_return: #Caso ele não encontre nada, retorna Failure
-            n = text_file.write(str(linha))
-            n = text_file.write('\n')
+            text_file.write(str(linha))
+            text_file.write('\n')
         text_file.close()
 
         #abre conexão com o servidor FTP e envia o arquivo dentro do File_path indicado
@@ -149,6 +139,7 @@ def main(argv):
     backupHost(file,user,password)
 
     print("Fim do script! \nTempo levado: %s segundos" % (time.time() - start_time))
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
